@@ -1,0 +1,174 @@
+basic assumption: 1WF's
+
+HCB's: XOR of some random predicate p with x
+
+	prove equivalent to 1WF via contradiction
+	use chernoff bound: Pr[X>(1+b)E(X)] < exp(-b^2/(2{+b})*E(X)) 
+		[{} denotes correction, as inequality was not given correctly in lecture]
+
+	
+Commitment Protocol (from HCB):
+	1WF f, HCB b
+	commit B with: 
+		y=f(x), b(x)^B
+	open B with x
+
+PRG:
+	1WP f, Seed x_0, Predicate p (for HCB b(x) = <x,p>)
+	
+	1. polynomially many times: 
+		a. add b(x_i) to output chain
+		b. assign x_{i+1} = f(x_i)
+	(output chain looks like: b(x_0),b(x_1),...,b(x_{Q(n)}))
+	
+	2. output the final x, and p
+	3. output chain in reverse order (b(x_{Q(n)}) first, b(x_0) last)
+
+PRF:
+	seed of length 2n, PRG: n--> 2n
+	build binary tree depth m using PRG,
+		rooted at seed
+		each leaf a 2n-bit string
+	each input (0 to 2^m-1) is used to binary search tree
+		output is some predetermined subset of bits at corresponding leaf
+
+Commitment Protocol (from PRG): [infinite committer, PPT receiver]
+	PRG G: n--> 3n
+	
+	1. receiver sends 3n-bit random string
+	2. committer uses PRG to get 3n-bit string 
+		a. generate n-bit seed s
+		b. Y = G(s)
+	3. commit bit b
+		a. if b=0, send Y
+		b. if b=1, send Y^W
+	4. open by sending s
+
+Commitment Protocol (claw-free pair): [PPT committer, infinite receiver]
+	claw-free (f,g)
+
+	1. committer generates random string x
+	2. commit bit b
+		a. if b=0, send f(x)
+		b. if b=1, send g(x)
+	3. open by sending x
+
+Digital Signature (trapdoor): [doesn't really work, but good to know]
+	keygen picks a trapdoor permutation f and trapdoor t from a family
+	secret key is trapdoor t, publickey is f
+	signature is inverse of document
+	verification checks that f(signature) = document
+
+Digital Signature (Lamport):
+	use 1WF f
+
+	1. secret key is 2 x n table of random x's
+	2. public key is corresponding table of f(x)'s
+	3. signature is bit-by-bit: 
+		a. take x from row 0 if bit is a 0
+		b. take x from row 1 if bit is a 1
+
+
+Multiple keygen scheme:
+	first half of key signs hash of one key,
+	second half signs hash of other key
+	==> each key is 4mn bits, where
+		n is key length
+		m is length of each x
+
+	use collision-resistant (universal one-way) hash
+	H: 4mn --> n
+
+MAC (single-use):
+	MAC_{a,b}(m) = a*m+b [a line]
+
+UWH:
+	1WF f:n-->n, a, b
+	
+	1. f(x) = y
+	2. chop(MAC_{a,b}(y))
+
+GNI IP:
+	verifier sends random permutation of random graph
+	prover sends back which graph it was
+
+GI ZKP:
+	prover sends permutation of graph(s)
+	verifier requests one of original graphs
+	prover shows that graph sent is isomorphic to one requested
+
+batched GI ZKP:
+	1. prover sends A~B~G_0~G_1 for commitment
+	2. verifier commits bits
+	3. prover sends graphs isomorpic to both G_0, G_1
+	4. verifier opens bits
+	5. prover provides proof
+		a. prover shows that graphs are equivalent to G_0 or G_1 as requested
+		b. prover shows that A~G_0, A~G_1
+
+GNI ZKP:
+	verifier sends random permutation of random graph
+	verifier provides "proof of knowledge" of which graph it should be equal to
+	prover sends back which graph it was
+
+GNI ZKP: [with proof of knowledge spelled out]
+	verifier sends (H,K)
+		where {H,K}~{G_0,G_1}
+	proof of knowledge
+		verifier sends (C,D)
+			where {C,D}~{H,K}~{G_0,G_1}
+		prover requests a bit
+		depending on bit, verifier either shows:
+			{C,D}~{H,K}
+			or {C,D}~{G_0,G_1}
+	prover sends back which graph H was (out of G_0, G_1)
+
+ZKP for AND:
+	provide 2 separate ZKP's
+
+ZKP for OR, GNI:
+	do both simultaneously, with same bit for both 
+		(i.e., either H_0 and G_0, or H_1 and G_1)
+
+ZKP for OR, GI:
+	prover sends:
+		C~G_0~G_1
+		D~H_0~H_1
+		(one of these possibly not isomorphic to both)
+	verifier requests a bit b
+	prover sends back isomorphism showing C~G_c, D~H_d, c^d=b
+
+ZKP for 3-coloring:
+	commit colors
+	ask for edge
+	open edge
+
+ZKP for hamiltonian (sigma):
+	commit adjacency matrix of permuted graph
+	ask for bit
+		if b=0, send permutation and show full permuted graph
+		if b=1, show hamiltonian cycle on permuted graph
+==> fiat-shamir says convert this to non-interactive by having prover generate bits via hash
+
+malleable commitments include pedersen
+
+coin flip into well:
+	A commits x
+	B sends y
+	A sends back M = N_M_F(x^y, transcript)
+	A sends ZKP that if x had been decommitted, M would be the same
+
+PCP:
+	hash it down via merkle tree
+	reqest spots
+	ZKP that if I had opened the tree, verifier would accept
+
+		
+
+
+	
+
+
+	
+
+

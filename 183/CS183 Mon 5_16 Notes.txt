@@ -1,0 +1,189 @@
+CS183 Mon 5/16 Notes
+
+topics: 
+- Yao’s garbled circuits
+- Dealing with malicious players
+- Lindel-pinkas proof of security of GC (non-adaptive) (skipped for next time)
+- application of ot-extension (beaver)
+- const round MPC (def, non-adaptive construction) (mostly just introduced)
+
+1) Yao
+- cosnt round circuit eval
+- only learn what is implied by output
+    - hide intermediate wire values
+- and+not enough to be any circuit
+- also NP-complete
+- steps can be dependent on each other (depth)
+- high level
+    - A garbles, B evaluates
+    - A garbles circuit: G(f, r) -> f’
+    - A garbles input: G(x, r) -> x’ (same random)
+    - correctness: f’(x’) = f(x)
+    - security: can’t tell G’, x’
+        - game: (weaker notion, actually is indistinguishable)
+        - <- x0,x1, f with f(x0)=f(x1)
+        - -> G(f), G(xb)
+        - can’t predict b
+    - Need to get B’s input to A
+        - OT using y to get G(y)
+- Use encryptions scheme
+- Two keys per wire
+    - K0 represents 0, K1 represents 1
+    - different per wire, so e.g. (A0, A1) for first, (B0, B1) for second, 
+      (C0, C1) for output of gate, etc. 
+    - all inputs, and all gate outputs
+    - Also include decryption of output wire Z0, Z1
+- Evaluator gets keys but doesn’t know value
+    - For his inputs, he knows, but not alice’s inputs
+- Gate evaluation
+    - Has inputs (A0, A1) and (B0, B1)
+    - Want to learn correct output (C0, C1)
+    - E.g. (A0 AND B1) -> C0
+    - Evaluator learns one of the two keys, but doesn’t know which key it is (0 or 1)
+    - Truth Tables (e.g. AND)
+        - A0 + B0 -> C0
+        - A0 + B1 -> C0
+        - A1 + B0 -> C0
+        - A1 + B1 -> C1
+    - encrypt so that you can only open one key
+- Garbling the table
+    - double encrypt each output, e.g. AND
+        - Enc_A0(Enc_B0(C0))
+        - Enc_A0(Enc_B1(C0))
+        - Enc_A1(Enc_B0(C0))
+        - Enc_A1(Enc_B1(C1))
+    - Issues
+        - If always same order, that reveals info (know which row). Fixed by shuffling rows
+        - Which row do you decrypt?
+            - Mark which row corresponds to which keys: randomly label keys 0/1, then say which keys are used by the row.
+            - In practice, a bunch of other tricks
+    - If this works, we’re done
+        - Has one of two per input wire
+            - Only knows 0/1 of his own input, not A’s input
+        - Learns exactly one output of each gate, but not what 0/1 it is
+            - So input wires hidden
+        - Repeat until output wire, and open
+- Intel’s AES accelerator
+    - fast encryption on hardware
+    - for e.g. full disk encryption
+    - Also lets garbled circuits be really fast (billions of gates per second)
+- Finally also give mapping of output wires
+    - if you get “z0” it means 0, “z1” -> 1
+    - also fine for multiple output wires
+- Putting it together 
+    - A does G(f) = f’, send f -> B
+        - Encrypted gate tables
+        - Output mapping
+    - A does G(x) = x’, send x’ -> B
+        - Keys corresponding to bits of x
+    - B has input y with a bunch of bits
+        - Each bit yi is 0 or 1
+        - Wants corresponding keys from A
+    - Execute 1-2 OT on yi = 0/1
+        - Get alice’s keys K0/K1 for yi=0/1
+        - can be done in parallel
+    - Bob ends up with G(y) = y’, keys corresponding to bits of y
+    - B now has f’, x’, y’, evaluates, gets output wire, uses output mapping to get answer
+- A has two possible keys per input bit (0/1)
+    - For bits of x, just sends over those corresponding keys
+        - E.g. x = 101, picks K1_0, K0_1, K1_2
+        - other ones she doesn’t send (uses to build garble tables)
+        - Also doesn’t say if it’s K0 or K1
+    - For bits of y, B uses 1-2 OT to select keys for y
+        - E.g. B has y, A has J0_0, J1_0, …
+            - (just doing more labels, J are keys for y)
+        - B inputs y0 = 1 into 1-2 OT, selecting from (J0_0, J1_0).
+        - B gets J(y0)_0 from the OT
+        - Also gets J(y1)_1, J(y2)_2 by doing more OT in parallel
+        - B doesn’t learn other keys
+        - A doesn’t learn y
+
+
+MPC applications
+- Google Visa
+    - money from ad clicks
+    - want e.g. relevant ads to play on phone when walking past a place (e.g. restaurant)
+    - but there’s no clicks in this case, so how to tell if helped
+    - want to correlate VISA+Mastercard transaction data to it, but lots of privacy issues
+    - Credit card data + Google phone data -> correlation of how effective it is, w/o learning any private data
+    - Now runs once a month, pays Visa/Mastercard a lot of money per execution
+- Boston woman wage study
+    - Boston university
+    - want wage gap of men vs women in IT
+    - across 100 companies, don’t want to reveal individual
+    - all companies secret share infos into several servers
+    - severs eval, release result, no server holds actual data
+    - no one wants to hold the data if subpoenaed  
+- satellite conjunction analysis
+    - lots of satellites, exact trajectories hard to calculate from observation
+    - interested in probability of collision if some get close. Expensive to fix
+    - hide for competitive reasons 
+    - commercial: for profit company plays as trusted third party. takes all data, does computations
+    - Government, no trusted third party. Instead MPC to compute
+    - Expensive approximations
+        - lots of floating point computations on lots of digits
+        - done in ~8s
+- student right to know before you go
+    - bipartisan bill
+    - (Rafi is cited as expert saying it’s possible)
+    - correlate earning potential to degree
+    - data from universities + IRS data
+    - MPC to keep private
+
+Dealing with malicious players
+- more recent compared to other work
+- Two party: A has x, B has y, want f(x, y)
+- Notions of security
+    - weakest: indistinguishability
+        - given f(x1)=f(x2), can’t tell E(x1) and E(x2)
+    - stronger: simulation
+        - given f(x, y) = z, B can fake conversation with A without talking to B
+        - Like ZK. Also one from Alices’ view
+        - Fine if one is malicious
+    - Adaptive corruption
+        - Both start honest
+        - Adversary can choose who to corrupt at some point, e.g. A
+        - Adv learns input of A at the point of corruption
+        - Sim
+            - Fake transcript up to the point, to be consistent
+            - Fake rest of messages
+    - Universal composability
+        - e.g. If protocol is part of larger meta-protocol 
+        - Both parties get corrupted at the end
+        - need to back-explain entire history
+Malicous garbled
+- A has x, B has y. Agreed on function f
+- Game for A good behavior
+    - A does many garble G(f, r1), …, G(f, r_2k)
+    - A sends f’_1, …, f’_2k
+    - B asks for k of them to be opened completely
+        - show randomness, all gates are valid, etc.
+        - Hence with high odds most of the remaining (e.g. >1/4) are correct
+    - Run (malicious) OT protocols to get inputs for all k remaining circuits
+    - Answer is majority of outputs
+    - A also proves inputs consistent, it’s another constant size circuit
+- B good behavior
+    - E.g. last gate is AND. 
+        - Have Enc(Enc(Z0 or Z1)) in table
+    - A makes signature scheme, PK
+    - Now final table outputs are (0, sign(Z0)) or (1, sign(Z1))
+    - B only learns one of the two values
+    - B can only report the opened one, can’t forge the wrong answer
+- Combine? Now many in parallel
+    - check for majority signature, etc.
+    - also another circuit with malicious MPC
+    - 
+
+Beaver OT extension
+- 1-2 OT direct construction expensive
+- garbled gates big but cheap to send (lots of cipher texts)
+- idea: k OT’s -> poly many OTs using garbled
+- Circuit
+    - inp: x = k bit PRF seed, y = k bit PRF seed
+    - output is very large: lots of sets of (r0, r1), (w, r_w): correlated randomness
+    - A knows seed1, B knows seed2
+    - mask outputs: (r0,r1) with seed1 so that B doesn’t learn it, but A can open it
+- only k OT needed to run garble
+- garble run more efficient in communication
+- get out poly many random OT’s
+- As seen, precomputed correlated randomness allows for very cheap online OT

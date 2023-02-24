@@ -1,0 +1,182 @@
+\documentclass[11pt]{article} 
+\usepackage[utf8]{inputenc} 
+
+
+\usepackage{geometry} 
+\geometry{a4paper} 
+
+\usepackage{graphicx} 
+\usepackage{booktabs} 
+\usepackage{array}
+\usepackage{paralist} 
+\usepackage{verbatim}
+\usepackage{subfig}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
+
+
+\usepackage{fancyhdr} 
+\pagestyle{fancy} 
+\renewcommand{\headrulewidth}{0pt} 
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} 
+
+
+\usepackage[nottoc,notlof,notlot]{tocbibind}
+\usepackage[titles,subfigure]{tocloft} 
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} 
+
+\renewcommand{\P}{\mathbf{P}}
+\newcommand{\NP}{\mathbf{NP}}
+\newcommand{\RP}{\mathbf{RP}}
+\newcommand{\CoRP}{\textbf{Co-}\mathbf{RP}}
+\newcommand{\PPT}{\mathbf{PPT}}
+\newcommand{\BPP}{\mathbf{BPP}}
+
+\newcommand{\N}{\mathbb{N}}
+
+
+
+\title{CS 183 Notes}
+\author{Stephen Kelman\\ Rafi Ostrovsky, Eli Jaffe}
+
+
+\begin{document}
+\maketitle
+
+\section{Lecture 1: Intro and 1-Way Functions}
+
+
+\subsection{A Brief Introduction to Cryptography}
+
+Originally, cryptography was something done in order to provide some level of privacy or secrecy. It was often used in war, with examples including Ancient Roman scalp ``encryption", Caesar Ciphers, and more recently, the Enigma Machines of WWII. Many of these older methods are examples of ``security by obscurity", which generally only works when the adversary doesn't know what method you are using. Once they know, reversing it to reveal the secret is often easy, or trivial.\medskip
+
+More recently, there have been some important watershed moments in cryptography. For instance, in the 1970s, Diffie and Hellman introduced the idea of public-key encryption, which allows anyone to use a public key to encrypt a message, but only people with a corresponding private key are able to decrypt it.\medskip
+
+The more important moment for this class came in the 1980s, when Micali and Blum introduced the idea that cryptographic systems could be \textbf{``provably secure"}. The idea of something being provably secure is that if the cryptosystem were to be broken, this would be equivalent to solving some other problem which is assumed to be difficult (usually an old, famous, unsolved problem from mathematics). So, one could begin with one of these difficult problems and design a cryptosystem based on creating a nontrivial instance of the problem. Then, the system would be provably secure in the sense that we can prove that breaking it (in the general case) is as difficult as solving the problem. 
+
+A proof of this type is called a \textbf{reduction}, since we ``reduce" the difficult problem to our cryptosystem by showing that anything (i.e., some algorithm) that breaks our cryptosystem could then be used (i.e. as a subroutine) to solve the difficult problem. In particular, Micali and Blum showed via reduction that breaking their pseudo-random number generator would be equivalent to solving the discrete logarithm problem.\smallskip
+
+It's important to note that a reduction proves that a cryptosystem is secure \emph{as long as the problem it is based on is actually as difficult as we think}. Of course, there's a long list of these difficult problems, and we can choose any of them, but that's where our job ends. If someone does break our cryptosystem, we can blame the centuries of other people who couldn't solve the hard problem and told us it was difficult.
+
+
+\subsection{Review of P/NP/NP-complete}
+
+There are a few important classes of problems (languages) to know:\bigskip
+
+\underline{\(\P\)} is the set of languages which are \emph{computable} in polynomial time.  That is, if \(L\in\P\), then there exists a nonnegative integer \(c\) such that for any string \(x\), we can solve whether or not \(x\in L\) in time \(O(|x|^c)\).\medskip
+
+\underline{\(\NP\)} is the set of languages which are \emph{verifiable} in polynomial time. That is, if \(L\in\NP\), then there exists a nonnegative integer \(c\) such that for any \(x\in L\), there exists a polynomial-size witness \(w\), with which we can verify that \(x\in L\) in time \(O(|x|)^c\). If \(x\notin L\), then no such witness exists. 
+
+In particular, there exists some ``verifier" \(V\) for every language \(L\) in \(\NP\). \(V\) takes as input some string \(x\) and some (polynomial size) ``witness" \(w\), and accepts if and only if \(w\) proves in some way that \(x\in L\). If \(x\in L\), then there exists some polynomial-size witness \(w\) for which \(V(x,w)\) accepts. If \(x\notin L\), then \(V(x,w)\) rejects, for any witness \(w\).\medskip
+
+\underline{\(\NP\)-complete} is the set of languages within \(\NP\) for which any solution can be used to solve any other problem in \(\NP\). In particular, if \(L\in\NP\)-complete, then any \(A\) solving \(L\) in polynomial time could be used as a subroutine to solve \(L'\) in polynomial time, for any \(L'\in\NP\).\bigskip
+
+Note: \(\NP\) stands for ``Nondeterministic Polynomial Time", which means that a nondeterministic Turing Machine would be able to decide the language in polynomial time, whereas \(P\) stands for polynomial time, meaning that a (deterministic) Turing Machine would be able to decide the language in polynomial time. 
+
+It is important to always remember that \(\P\subset \NP\). For all problems in \(\NP\), we either (1) know of a way to solve them in polynomial time, or (2) do not yet know of such a way. There are no problems in \(\NP\) that we have shown \emph{cannot be solved in polynomial time}. If one were to show this for some problem, it would prove that \(\P\ne\NP\), which is currently a (very difficult) unsolved problem and is, in a sense, at the heart of this course.
+
+
+
+\newpage
+\subsection{Probabilistic Complexity Classes}
+
+Also important to us is the idea of randomness. We will come back to why it is so important briefly, but for now, we introduce a few sets of languages which are categorized probabilistically:\bigskip
+
+\underline{\(\RP\)} (Randomized Polytime) is the set of all languages that can be recognized by some machine \(M\) in polynomial time such that:
+\begin{enumerate}
+\item \(Pr[M(x)\text{ accepts }|x\in L]>\frac{2}{3}\), and 
+\item \(Pr[M(x)\text{ rejects }|x\notin L]=1.\)
+\end{enumerate}\medskip
+
+\underline{\(\CoRP\)} (Co- Randomized Polytime) is the set of all languages that can be recognized in polynomial time such that:
+\begin{enumerate}
+\item \(Pr[M(x)\text{ accepts }|x\in L]=1\), and 
+\item \(Pr[M(x)\text{ rejects }|x\notin L]>\frac{2}{3}.\)
+\end{enumerate}\medskip
+
+\underline{\(\mathbf{PPT}\)} (Probabilistic Polynomial Time), also sometimes denoted as \(\BPP\) (Bounded Probabilistic Poly-time), is the set of all languages that can be recognized in polynomial time such that: 
+\begin{enumerate}
+\item \(Pr[M(x)\text{ accepts }|x\in L]>\frac{2}{3}\), and 
+\item \(Pr[M(x)\text{ rejects }|x\notin L]>\frac{2}{3}.\)
+\end{enumerate}\bigskip
+
+Note that \(\RP\) allows errors only on strings in the language, \(\CoRP\) allows errors only on strings not in the language (hence the ``Co-"), and \(\PPT\) allows errors on all strings. For this reason, we say that \(\RP\) and \(\CoRP\) are ``one-sided", or that they have ``one-sided" error. Of course, this means that \(\PPT/\BPP\) has ``two-sided" error.\medskip
+
+Additionally, the choice of \(\frac{2}{3}\) is completely arbitrary. For all of these definitions, it may be replaced by any real number strictly between \(\frac{1}{2}\) and \(1\). As long as the probability is bounded away from \(\frac{1}{2}\), we can ``amplify" it through repeated trials so that the probability of correctness is as close to \(1\) as we would like. (Though, of course, we will never actually be able to achieve a probability of 1.)
+
+We cover amplification techniques in depth in lecture 3, in a slightly different context.
+
+
+\newpage
+\subsection{``Hard" Problems and Randomness}
+
+As mentioned in the introduction, ``hard" problems are at the center of cryptography. Essentially, we want problems of the following form: 
+\begin{enumerate}
+\item They should be ``easy" to create. So, when using them for cryptography, it should take a reasonable amount of time and power to encrypt our information.
+\item They should have solutions, and with the right amount of information, they should not be difficult to solve or invert. So, if we want someone to be able to get our information, we may simply give them the necessary information and they should be able to decrypt it with a reasonable amount of time and power.
+\item They should be \textbf{``hard"} to solve without the necessary information. So, if someone who we do not want to see our information somehow gets ahold of an encrypted method, it should take them an unreasonable, or infeasible amount of time and/or computational power to decrypt it.
+\end{enumerate}
+
+One problem often regarded as ``hard", and often given as an introductory example in cryptography is integer factorization. That is, given an integer \(N\) that is the product of two primes \(p,q\), find \(p\) and \(q\). While this is certainly difficult, and  we have only shown to be solvable in \(O(2^{\sqrt[3]{N\log\log(N)}^2})\), it isn't a great assumption for hardness. Steady improvement has been made on it over a long period of time, it is not \(NP\)-complete, and realization of large-scale quantum computing could make it much easier to solve.\bigskip
+
+So, this brings us to one of our main questions: \textbf{What is the \underline{minimal} assumption we must make in order to build interesting cryptosystems?}
+
+One answer to this question is: \textbf{the existence of \underline{One-way Functions} (1WF, OWF)}.\bigskip
+
+The idea of one-way functions is simply to satisfy the criteria we listed above. That is, they are \textbf{\emph{``easy"}} to compute and possible to invert but if someone doesn't have all the necessary information, they are \textbf{\emph{``hard"}} to invert.\medskip
+
+But what do we really mean by ``easy" and ``hard"? For ``easy", it turns out to be enough to just say that we can consider something easy if we can do it in (probabilistic) polynomial time. Deciding when to call something ``hard" is a bit more complicated.\smallskip
+
+At first glance, we might try declaring that something should be considered ``hard" if we don't know some way for it to be solved in polynomial time (by a deterministic Turing Machine). But this isn't good enough, because it doesn't assume that our adversary is as strong as possible. The opponent should be allowed to use any available resources, especially \emph{\underline{randomness}}.
+
+We single out randomness like this because it is often a very powerful computational tool. By relaxing how strict we are about what it means to solve a problem from being right \(100\%\) of the time to something close, like \(99\%\), the problem can become much easier to solve (i.e., determining primality can be done very quickly with a probabilistic algorithm). In general, we can trade a little bit of accuracy for a great deal of efficiency.\smallskip
+
+\newpage
+So, we make another attempt at formulating the idea of ``hardness" in terms of a game. We have two players, a challenger \(CH\) and an adversary \(ADV\). The game is for \(ADV\) to try to invert the function \(f\), and is played as follows:\medskip
+
+\begin{enumerate}
+\item[0.] There is a shared function \(f\), and \(k\in\N\) is defined to be some measure of the computational power of \(ADV\).
+\item \(CH\) randomly generates a string \(x\) with \(|x|\) being polynomial in \(k\).
+\item \(CH\) computes \(f(x)\) and sends this value to \(ADV\).
+\item \(ADV\) does some (probabilistic) polynomial time computation and computes some \(x'\) from \(f(x)\).
+\item \(ADV\) sends \(x'\) to \(CH\).
+\item If \(f(x')=f(x)\), then \(ADV\) wins. Otherwise, \(CH\) wins.
+\end{enumerate}\medskip
+
+Now, we can define the ``hardness" of inverting \(f\) based on this game and who wins. Since we allow probabilistic play, we can't just say that \(ADV\) should \emph{never} get a correct value, since they could just guess until they get it right by chance.
+
+We need to consider what might happen if \(ADV\) just guesses at \(x\) (or some winning value of \(x'\)), or flips coins and uses a probabilistic algorithm of some sort. Certainly, if \(ADV\) really just got lucky, we shouldn't really count it. But, if their guessing seems to be very successful, we should say that they're onto something, and \(f\) is probably not that hard to invert. 
+
+So, we can say that \textbf{ \(f\) is ``hard" to invert if \(ADV\) has a \underline{``negligible''} probability of winning this game}. We specify a formal definition of ``negligible", and our definition of ``hardness" in our final formal definition of a 1WF:\medskip
+
+A function \(f\) is a \textbf{One-Way Function} if:
+
+\begin{enumerate}
+\item \(f\) is polynomial-time computable
+\item \(f\) is ``hard" to invert in the following sense:
+\[\forall c\in\N, A\in\mathbf{PPT}, \exists N_c\in\N\text{ such that }\]
+\[\forall x\text{ randomly generated with }|x|=n>N_c,\]
+\[Pr[A(f(x))=x'\mid f(x')=f(x)]<\frac{1}{n^c}\]
+\end{enumerate}
+
+Note that \(N_c\) doesn't seem necessary from what we have done so far, but we include it so that we can avoid the possibility of an adversary pre-computing a large lookup table and then just using that to invert \(f\). 
+
+As we have been discussing, the final statement involves probability because \(ADV\) may employ guessing and randomness in their algorithm.
+
+
+\subsection{Aside: Correlated Randomness (CR)}
+
+The idea of correlated randomness is to have a lot of separate random strings/variables/values, generally distributed among different parties, such that the random strings are related in some way (i.e., they could combine to form a key or secret of some sort). Similar to one-way functions, Correlated Randomness can be used to build a lot of modern cryptography. Ostrovsky mentions CR as an alternative to 1WF's, but in a practical sense, the most difficult part of CR is generating it, for which we usually use 1WF's anyways. \smallskip
+
+It's more often seen as an alternative in a proof sense, as 1WF's can often be tricky to work with directly when proving something about a cryptosystem, but CR may be easier to use to achieve the same goal.
+
+\end{document}

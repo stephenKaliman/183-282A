@@ -1,0 +1,103 @@
+Hardcore Bits
+  - Lecture 2 page 3
+  - Week 1 page 11/12
+
+
+Indistinguishability
+  - Week 2 page 20 (24)
+  - Lecture 4 page 2
+
+
+PRG
+  - Lecture 4
+  - Week 2 page 19 (24)
+
+
+PRF
+  - Week 3 page 13 (16)
+  - Lecture 5 page 2
+
+
+Digital Signatures
+  - Week 3 page 22
+  - Lecture 6
+	Unique Signatures
+		signature that is uniquely determined by signer and document
+	  - Week 9 page 33
+	  - also see bookmarks
+
+U1WHF
+  - Week 4 page 5
+  - Lecture 7 page 2
+
+VRF (verifiable random function)
+	essentially a PRF, but verifiable
+	i.e., there is a public key you can use to check the output
+  - also see bookmarks
+
+Merkle Trees
+  - Week 3 page 35
+  - Lecture 6 page 5 [1.3.1]
+
+
+Zero Knowledge
+	Proof vs. Argument:
+		Proof is sound with computationally unbounded prover
+		Argument is sound with polynomially bounded prover
+	  - also see bookmarks
+
+PKE
+  - Week 6 (3)
+	El Gamal
+	  - Week 7 page 7
+		Security (based on DDH)
+		  - Week 7 page 8
+
+
+Commitments
+	Naor (PRG)
+	  - Week 3 page 6
+	Claw-free
+	  - Week 3 page 11
+
+OT
+	Rabin: random info vs garbage
+	1-2-OT: selected info 1 or 2
+	Correlated Randomness: random things w/ relationship
+	Beaver Pre-computed OT: do random 1-2-OT, use correlated randomness
+	==> Honest-but-curious MPC
+	  - Week 7 page 10
+	  - Notes page 199
+
+MPC
+  - Week 7 page 10
+	Malicious MPC, Threshold Bounds, BGW Protocol (info-theoretic)
+	  - Week 9 page 3
+	  - Notes page 203
+
+Garbled Circuits
+	Proof of Security
+	  - Week 8 page 4
+
+
+Byzantine Agreement
+	(Impossibility for t>=n/3)
+	  - Week 9 page 13
+
+Blockchain
+	public ledger
+	  - Week 9 page 20
+	Proof of Work
+	  - Week 9 page 26
+	Proof of Stake
+	  - Week 9 page 33
+
+PIR
+  - Week 7 page 27
+	==> CRHF
+	  - Week 7 page 34
+
+ORAM
+  - Week 10
+
+
